@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verdict Controller</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0520;
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 28px; color: #e9d5ff; padding: 24px;
+  }
+  .title { font-size: 13px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c084fc; }
+
+  .verdict-row { display: flex; gap: 16px; }
+  .verdict-btn {
+    padding: 18px 36px;
+    border-radius: 14px;
+    border: 2px solid #4c1d95;
+    background: #1e0b38;
+    color: #e9d5ff;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .verdict-btn:hover { border-color: #7c3aed; }
+  .verdict-btn.denied.active {
+    background: rgba(200,48,46,0.18);
+    border-color: #c8302e;
+    color: #ff8a87;
+  }
+  .verdict-btn.approved.active {
+    background: rgba(44,138,62,0.18);
+    border-color: #2c8a3e;
+    color: #8fe6a0;
+  }
+
+  .play-btn {
+    padding: 18px 60px;
+    border-radius: 14px;
+    border: none;
+    background: #7c3aed;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .play-btn:hover { background: #9333ea; }
+  .play-btn:active { transform: scale(0.97); }
+  .play-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .hide-btn {
+    background: transparent;
+    border: 1px solid #4c1d9566;
+    color: #7c3aed;
+    padding: 8px 22px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+  }
+  .hide-btn:hover { border-color: #7c3aed; color: #c084fc; }
+
+  .status { font-size: 11px; color: #a78bfa99; letter-spacing: 1px; }
+</style>
+</head>
+<body>
+
+<div class="title">Streamer U Verdict Controller</div>
+
+<div class="verdict-row">
+  <button class="verdict-btn approved" id="approvedBtn">Approved</button>
+  <button class="verdict-btn denied" id="deniedBtn">Denied</button>
+</div>
+
+<button class="play-btn" id="playBtn" disabled>▶ Play animation</button>
+<button class="hide-btn" id="hideBtn">Hide overlay</button>
+
+<div class="status" id="status">Connecting...</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBsjUq6mvCwKGr9n64Oo7pGft8NqGcUIaU",
+    authDomain: "website-firebase-17385.firebaseapp.com",
+    databaseURL: "https://website-firebase-17385-default-rtdb.firebaseio.com",
+    projectId: "website-firebase-17385",
+    storageBucket: "website-firebase-17385.firebasestorage.app",
+    messagingSenderId: "934443626587",
+    appId: "1:934443626587:web:12d642d7d1fb4d7cc1cf7e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  const verdictRef = ref(db, 'verdict');
+
+  let selected = null;
+
+  const approvedBtn = document.getElementById('approvedBtn');
+  const deniedBtn = document.getElementById('deniedBtn');
+  const playBtn = document.getElementById('playBtn');
+
+  function select(v) {
+    selected = v;
+    approvedBtn.classList.toggle('active', v === 'APPROVED');
+    deniedBtn.classList.toggle('active', v === 'DENIED');
+    playBtn.disabled = false;
+  }
+
+  approvedBtn.onclick = () => select('APPROVED');
+  deniedBtn.onclick = () => select('DENIED');
+
+  playBtn.onclick = () => {
+    if (!selected) return;
+    set(verdictRef, {
+      visible: true,
+      verdict: selected,
+      trigger: Date.now()
+    });
+    document.getElementById('status').textContent = 'Sent ✓';
+    setTimeout(() => document.getElementById('status').textContent = 'Live ✦', 1500);
+  };
+
+  document.getElementById('hideBtn').onclick = () => {
+    set(verdictRef, { visible: false, verdict: selected || '', trigger: Date.now() });
+    document.getElementById('status').textContent = 'Hidden';
+    setTimeout(() => document.getElementById('status').textContent = 'Live ✦', 1500);
+  };
+
+  document.getElementById('status').textContent = 'Live ✦';
+</script>
+</body>
+</html>
